@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>QR to Teks by andri14</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #0099ff;
+            --primary-dark: #0366d6;
+            --primary-light: #33b6ff;
+            --bg: #f4f8fb;
+            --white: #fff;
+            --border: #e1e4e8;
+            --shadow: 0 4px 20px rgba(0,0,0,0.10);
+            --radius: 18px;
+            --text-main: #222c35;
+            --text-sub: #444;
+            --qr-bg: #f9fbfd;
+            --toggle-track: #e1e4e8;
+            --toggle-thumb: #0099ff;
+            --toggle-sun: #f6c243;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
+            transition: background 0.34s cubic-bezier(.4,0,.2,1), color 0.3s;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 440px;
+            margin: 30px auto 40px auto;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 34px 32px 30px 32px;
+            transition: background 0.32s, box-shadow 0.32s;
+            position: relative;
+        }
+        .header-main {
+            text-align: center;
+            margin-bottom: 17px;
+            font-size: 1.7em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--primary-dark);
+            transition: color 0.3s;
+        }
+        .subheader {
+            text-align: center;
+            font-size: 1.13em;
+            margin-bottom: 26px;
+            color: var(--text-sub);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+        }
+        .section {
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: var(--qr-bg);
+            padding: 23px 18px 18px 18px;
+            margin-bottom: 23px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: background 0.3s, border 0.3s;
+        }
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 7px;
+            color: var(--text-main);
+            transition: color 0.3s;
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            font-size: 1em;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 11px 10px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            resize: vertical;
+            background: #fff;
+            color: #226;
+            transition: background 0.3s, color 0.3s, border 0.3s;
+        }
+        textarea[readonly] {
+            background: #e6f2fb;
+            color: #226;
+        }
+        .button, .btn-icon {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border: none;
+            border-radius: 7px;
+            font-size: 1em;
+            font-weight: 600;
+            padding: 10px 26px;
+            box-shadow: 0 2px 8px rgba(0,153,255,0.10);
+            cursor: pointer;
+            transition: background 0.18s, transform 0.14s;
+            margin-bottom: 8px;
+            outline: none;
+        }
+        .btn-icon {
+            font-size: 1em;
+            padding: 8px 13px;
+            margin-left: 7px;
+            vertical-align: middle;
+        }
+        .button:hover, .btn-icon:hover {
+            background: linear-gradient(90deg, var(--primary-light), var(--primary-dark));
+            transform: translateY(-2px) scale(1.03);
+        }
+        #qrResult img {
+            display: block;
+            margin: 20px auto 0 auto;
+            max-width: 170px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,153,255,0.04);
+        }
+        #qrDownloadBtn {
+            display: block;
+            margin: 10px auto 0 auto;
+            background: #fff;
+            color: var(--primary-dark);
+            border: 1.5px solid var(--primary-dark);
+            font-size: 0.98em;
+            font-weight: 500;
+            padding: 7px 20px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background 0.16s, color 0.16s;
+        }
+        #qrDownloadBtn:hover {
+            background: var(--primary-dark);
+            color: #fff;
+        }
+        #decodedText label {
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            display: inline-block;
+            background: #e6f2fb;
+            color: #0366d6;
+            border: none;
+            font-size: 1.1em;
+            padding: 7px 18px;
+            border-radius: 7px;
+            font-weight: 500;
+            margin-top: 6px;
+            margin-left: 2px;
+            cursor: pointer;
+            transition: background 0.16s, color 0.16s;
+        }
+        .copy-btn:hover {
+            background: #0099ff;
+            color: #fff;
+        }
+        .copied {
+            color: #26c281;
+            font-size: 0.97em;
+            margin-left: 7px;
+        }
+        /* Kamera QR styles */
+        #cameraSection {
+            margin-top: 16px;
+        }
+        #cameraView {
+            display: none;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        #qrVideo {
+            width: 100%;
+            max-width: 350px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,153,255,0.07);
+            background: #222;
+        }
+        #closeCameraBtn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.98em;
+            font-weight: 500;
+            padding: 6px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+        #closeCameraBtn:hover {
+            background: #c0392b;
+        }
+        .scan-status {
+            font-size: 0.98em;
+            color: #666;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        /* Toggle Switch for dark mode */
+        .dark-toggle {
+            position: absolute;
+            right: 30px;
+            top: 35px;
+            z-index: 10;
+            user-select: none;
+        }
+        .dark-switch {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            gap: 10px;
+            color: var(--primary-dark);
+            transition: color 0.3s;
+        }
+        .dark-switch input {
+            display: none;
+        }
+        .toggle-slider {
+            width: 46px;
+            height: 26px;
+            border-radius: 14px;
+            background: var(--toggle-track);
+            position: relative;
+            transition: background 0.3s;
+            margin-right: 5px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+        }
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            top: 2.5px;
+            left: 3px;
+            width: 21px;
+            height: 21px;
+            border-radius: 50%;
+            background: var(--toggle-thumb);
+            transition: left 0.3s, background 0.3s;
+        }
+        .toggle-slider.sun::before {
+            background: var(--toggle-sun);
+            box-shadow: 0 0 2px 3px #ffe28f77;
+        }
+        .dark-switch input:checked + .toggle-slider {
+            background: #28344a;
+        }
+        .dark-switch input:checked + .toggle-slider::before {
+            left: 22px;
+            background: #2d8fff;
+            box-shadow: 0 0 10px 0 #2d8fff99;
+        }
+        .toggle-emoji {
+            font-size: 1.22em;
+            transition: color 0.23s;
+            pointer-events: none;
+        }
+        .toggle-emoji.sun {
+            color: #f6c243;
+        }
+        .toggle-emoji.moon {
+            color: #2d8fff;
+        }
+        footer {
+            margin-top: 15px;
+            text-align: center;
+            color: #8492a6;
+            font-size: 0.96em;
+            transition: color 0.3s;
+            position: relative;
+        }
+        /* WhatsApp mini icon in footer */
+        .wa-footer {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .wa-footer svg {
+            vertical-align: middle;
+            transition: filter 0.2s;
+        }
+        .wa-footer:hover svg {
+            filter: brightness(1.2) drop-shadow(0 0 4px #25d36688);
+        }
+        @media(max-width: 550px) {
+            .container {
+                max-width: 98vw;
+                padding: 12vw 2vw 8vw 2vw;
+            }
+            #qrVideo {
+                max-width: 90vw;
+            }
+            .dark-toggle {
+                right: 10px;
+                top: 10px;
+            }
+            footer {
+                font-size: 0.9em;
+            }
+            .wa-footer {
+                margin-left: 6px;
+            }
+        }
+        /* DARK MODE */
+        body.dark {
+            --bg: #121825;
+            --white: #181f2e;
+            --border: #222a38;
+            --shadow: 0 4px 32px rgba(16,26,46,0.22);
+            --primary: #53a6e7;
+            --primary-dark: #3399ff;
+            --primary-light: #7cdcfb;
+            --text-main: #eaf6fa;
+            --text-sub: #8ea5bb;
+            --qr-bg: #151c2c;
+            --toggle-track: #28344a;
+            --toggle-thumb: #2d8fff;
+            --toggle-sun: #ffe28f;
+        }
+        body.dark, body.dark .container {
+            background: var(--bg);
+            color: var(--text-main);
+        }
+        body.dark .container {
+            background: var(--white);
+            box-shadow: var(--shadow);
+        }
+        body.dark .header-main {
+            color: var(--primary-dark);
+        }
+        body.dark .subheader {
+            color: var(--text-sub);
+        }
+        body.dark .section {
+            background: var(--qr-bg);
+            border-color: var(--border);
+        }
+        body.dark label {
+            color: var(--text-main);
+        }
+        body.dark textarea, body.dark input[type="file"] {
+            background: #151d2c;
+            color: #eaf6fa;
+            border-color: var(--border);
+        }
+        body.dark textarea[readonly] {
+            background: #1a2332;
+            color: #8fd4ff;
+        }
+        body.dark .copy-btn {
+            background: #1a2332;
+            color: #3399ff;
+        }
+        body.dark .copy-btn:hover {
+            background: #3399ff;
+            color: #fff;
+        }
+        body.dark #qrDownloadBtn {
+            background: #151d2c;
+            color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        body.dark #qrDownloadBtn:hover {
+            background: var(--primary-dark);
+            color: #fff;
+        }
+        body.dark #closeCameraBtn {
+            background: #b13c2a;
+        }
+        body.dark #closeCameraBtn:hover {
+            background: #b13c2a;
+            filter: brightness(1.2);
+        }
+        body.dark .scan-status {
+            color: #7bb0e6;
+        }
+        body.dark footer {
+            color: #4a6686;
+        }
+        body.dark .toggle-slider {
+            background: var(--toggle-track);
+        }
+        body.dark .toggle-slider::before {
+            background: #2d8fff;
+        }
+        body.dark .toggle-emoji.sun {
+            color: #ffe28f;
+        }
+        body.dark .toggle-emoji.moon {
+            color: #2d8fff;
+        }
+        body.dark .wa-footer svg {
+            filter: brightness(1.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="dark-toggle">
+        <label class="dark-switch">
+            <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+            <span class="toggle-slider sun"></span>
+            <span class="toggle-emoji sun" id="emoji-sun" title="Light Mode">☀️</span>
+            <span class="toggle-emoji moon" id="emoji-moon" title="Dark Mode" style="display: none;">🌙</span>
+        </label>
+    </div>
+    <div class="container">
+        <div class="header-main">QR to Teks by andri14</div>
+        <div class="subheader">Konversi QR code ke teks & sebaliknya dengan mudah dan cepat.</div>
+
+        <div class="section">
+            <label for="inputText">Teks ke QR Code:</label>
+            <textarea id="inputText" placeholder="Masukkan teks untuk dijadikan QR code..."></textarea>
+            <button class="button" onclick="generateQR()">Buat QR Code</button>
+            <div id="qrResult"></div>
+        </div>
+
+        <div class="section">
+            <label for="qrImage">QR Code ke Teks:</label>
+            <input type="file" id="qrImage" accept="image/*">
+            <button class="button" onclick="decodeQR()">Baca QR Code</button>
+            <button class="button btn-icon" onclick="openCamera()" style="margin-left:0;margin-top:2px;">Scan dengan Kamera</button>
+            <div id="cameraSection">
+                <div id="cameraView">
+                    <video id="qrVideo" autoplay></video><br>
+                    <button id="closeCameraBtn" onclick="closeCamera()">Tutup Kamera</button>
+                    <div class="scan-status" id="scanStatus">Arahkan kamera ke QR code...</div>
+                </div>
+            </div>
+            <div id="decodedText"></div>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 by andri14 • Powered by qrious & jsQR
+        <a class="wa-footer" href="https://wa.me/6283874636450" target="_blank" title="Hubungi via WhatsApp">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="16" fill="#25D366"/>
+                <path d="M24.44 19.66c-.37-.19-2.18-1.08-2.52-1.2-.34-.13-.6-.19-.85.19-.25.37-.98 1.2-1.2 1.45-.22.24-.44.28-.81.09-.37-.19-1.56-.58-2.97-1.84-1.1-.99-1.85-2.22-2.07-2.59-.22-.37-.02-.57.16-.75.17-.17.37-.44.56-.66.19-.22.25-.37.37-.62.12-.25.06-.47-.03-.66-.09-.19-.85-2.06-1.17-2.82-.31-.75-.63-.65-.85-.66-.22-.01-.47-.01-.72-.01-.25 0-.66.09-1.01.47-.34.37-1.32 1.29-1.32 3.15s1.35 3.65 1.54 3.9c.19.25 2.67 4.09 6.52 5.57.91.31 1.62.5 2.17.64.91.23 1.74.2 2.39.12 0 0 2.37-.97 2.71-2.4.34-1.44.34-2.67.24-2.87-.09-.19-.34-.31-.7-.5z" fill="#fff"/>
+            </svg>
+        </a>
+    </footer>
+    <!-- QR code generator library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+    <!-- QR code reader library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script>
+        let lastQRDataUrl = '';
+
+        function generateQR() {
+            const text = document.getElementById('inputText').value;
+            const qrResultDiv = document.getElementById('qrResult');
+            if (!text.trim()) {
+                alert('Silakan masukkan teks.');
+                return;
+            }
+            const qr = new QRious({
+                value: text,
+                size: 170
+            });
+            lastQRDataUrl = qr.toDataURL();
+            qrResultDiv.innerHTML =
+                '<img id="qrImageGen" src="' + lastQRDataUrl + '" alt="QR Code">' +
+                '<button id="qrDownloadBtn" onclick="downloadQR()">Download QR</button>';
+        }
+
+        function downloadQR() {
+            if (!lastQRDataUrl) return;
+            const link = document.createElement('a');
+            link.href = lastQRDataUrl;
+            link.download = 'qrcode.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function decodeQR() {
+            const fileInput = document.getElementById('qrImage');
+            const resultDiv = document.getElementById('decodedText');
+            resultDiv.textContent = '';
+            if (fileInput.files.length === 0) {
+                alert('Silakan pilih gambar QR Code.');
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const code = jsQR(imageData.data, img.width, img.height);
+                    if (code) {
+                        resultDiv.innerHTML =
+                            `<label>Hasil Dekode:</label>
+                            <textarea id="qrDecodedText" readonly>${code.data}</textarea>
+                            <button class="copy-btn" onclick="copyDecodedText()">Salin</button>
+                            <span id="copiedNotif" class="copied" style="display:none;">Tersalin!</span>`;
+                    } else {
+                        resultDiv.textContent = 'QR Code tidak terdeteksi atau tidak valid.';
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function copyDecodedText() {
+            const textarea = document.getElementById('qrDecodedText');
+            const notif = document.getElementById('copiedNotif');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            notif.style.display = 'inline';
+            setTimeout(() => { notif.style.display = 'none'; }, 1300);
+        }
+
+        // --- CAMERA SCAN FEATURE START ---
+        let videoStream = null;
+        let scanInterval = null;
+
+        function openCamera() {
+            const cameraView = document.getElementById('cameraView');
+            const qrVideo = document.getElementById('qrVideo');
+            const scanStatus = document.getElementById('scanStatus');
+            const decodedTextDiv = document.getElementById('decodedText');
+            decodedTextDiv.innerHTML = '';
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(function(stream) {
+                    videoStream = stream;
+                    qrVideo.srcObject = stream;
+                    qrVideo.setAttribute("playsinline", true); // required for iOS Safari
+                    cameraView.style.display = 'block';
+                    scanStatus.textContent = "Arahkan kamera ke QR code...";
+                    scanInterval = setInterval(() => {
+                        scanQRCodeFromVideo();
+                    }, 400);
+                }).catch(function(err) {
+                    alert('Tidak dapat mengakses kamera: ' + err.message);
+                });
+            } else {
+                alert('Peramban Anda tidak mendukung kamera.');
+            }
+        }
+
+        function closeCamera() {
+            const cameraView = document.getElementById('cameraView');
+            cameraView.style.display = 'none';
+            if (videoStream) {
+                let tracks = videoStream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoStream = null;
+            }
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+            }
+        }
+
+        function scanQRCodeFromVideo() {
+            const qrVideo = document.getElementById('qrVideo');
+            const canvas = document.createElement('canvas');
+            const decodedTextDiv = document.getElementById('decodedText');
+            const scanStatus = document.getElementById('scanStatus');
+            if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+                canvas.width = qrVideo.videoWidth;
+                canvas.height = qrVideo.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, canvas.width, canvas.height);
+                if (code) {
+                    closeCamera();
+                    decodedTextDiv.innerHTML =
+                        `<label>Hasil Dekode (Kamera):</label>
+                        <textarea id="qrDecodedText" readonly>${code.data}</textarea>
+                        <button class="copy-btn" onclick="copyDecodedText()">Salin</button>
+                        <span id="copiedNotif" class="copied" style="display:none;">Tersalin!</span>`;
+                    scanStatus.textContent = "QR berhasil dibaca!";
+                }
+            }
+        }
+        // --- CAMERA SCAN FEATURE END ---
+
+        // --- DARK MODE FEATURE START ---
+        function setDarkMode(enabled) {
+            if (enabled) {
+                document.body.classList.add('dark');
+                localStorage.setItem('qr_dark', '1');
+                document.getElementById('darkModeToggle').checked = true;
+                document.querySelector('.toggle-slider').classList.remove('sun');
+                document.querySelector('.toggle-slider').classList.add('moon');
+                document.getElementById('emoji-sun').style.display = "none";
+                document.getElementById('emoji-moon').style.display = "";
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem('qr_dark', '0');
+                document.getElementById('darkModeToggle').checked = false;
+                document.querySelector('.toggle-slider').classList.remove('moon');
+                document.querySelector('.toggle-slider').classList.add('sun');
+                document.getElementById('emoji-sun').style.display = "";
+                document.getElementById('emoji-moon').style.display = "none";
+            }
+        }
+        function toggleDarkMode() {
+            setDarkMode(!document.body.classList.contains('dark'));
+        }
+        // Load dark mode on startup
+        (function() {
+            const dark = localStorage.getItem('qr_dark');
+            if (dark === '1') {
+                setDarkMode(true);
+            } else {
+                setDarkMode(false);
+            }
+        })();
+        // --- DARK MODE FEATURE END ---
+    </script>
+</body>
+</html>
